@@ -1,0 +1,52 @@
+########################################################
+# Class
+###################################################################
+
+FlexiTimePlot	KEYWORD1
+FlexiXYSeries	KEYWORD1
+FlexiAbstractSeries	KEYWORD1
+FlexiPlotBase	KEYWORD1
+FlexiXYPlot	KEYWORD1
+series_t	KEYWORD1
+flexi_xy_data_t	KEYWORD1
+FlexiBarPlot	KEYWORD1
+FlexiBarSeries	KEYWORD1
+FlexiBarColumn	KEYWORD1
+FlexiPieChart	KEYWORD1
+FlexiPieSeries	KEYWORD1
+
+###################################################################
+# Methods and Functions
+###################################################################
+
+getName	KEYWORD2
+setColor	KEYWORD2
+getColor	KEYWORD2
+hasColor	KEYWORD2
+clear	KEYWORD2
+setID	KEYWORD2
+addSeries	KEYWORD2
+count	KEYWORD2
+series	KEYWORD2
+seriesByName	KEYWORD2
+removeAllSeries	KEYWORD2
+removeSeries	KEYWORD2
+removeSeriesByName	KEYWORD2
+printID	KEYWORD2
+printSeries	KEYWORD2
+plot	KEYWORD2
+addData	KEYWORD2
+addColumn	KEYWORD2
+removeColumn	KEYWORD2
+columns	KEYWORD2
+columnIndex	KEYWORD2
+printColumns KEYWORD2
+
+###################################################################
+# Constants
+###################################################################
+
+COLOR_STR_SIZE	LITERAL1
+SERIES_NAME_STR_SIZE	LITERAL1
+ID_STR_SIZE	LITERAL1
+BAR_NAME_STR_SIZE	LITERAL1

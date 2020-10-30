@@ -131,30 +131,20 @@ uint8_t GPS_centisecond = 0;
 unsigned long currentMillis_GPS = 0;
 unsigned long previousMillis_GPS = 0;
 
-double ENCODEROUTPUT = 12; // Please insert your motor encoder output pulse per rotation
-#define HALLSEN_FR_A 5 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
-#define HALLSEN_FL_A 4 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
-#define HALLSEN_RR_A 3 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
-#define HALLSEN_RL_A 2 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
+double ENCODEROUTPUT = 20; // Please insert your motor encoder output pulse per rotation
+#define HALLSEN_RA 3 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
+#define HALLSEN_FA 2 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
 
-double encoderValue_FR = 0.0;
-double encoderValue_FL = 0.0;
-double encoderValue_RR = 0.0;
-double encoderValue_RL = 0.0;
+double encoderValue_F = 0.0;
+double encoderValue_R = 0.0;
 
 int interval = 1000;
 long previousMillis = 0;
 long currentMillis = 0;
-double rpm_FR = 0.0;
-double rpm_FL = 0.0;
-double rpm_RR = 0.0;
-double rpm_RL = 0.0;
-double vx_FR = 0.0;
-double vx_FL = 0.0;
-double vx_RR = 0.0;
-double vx_RL = 0.0;
-double v_right = 0.0;
-double v_left = 0.0;
+double rpm_F = 0.0;
+double rpm_R = 0.0;
+double vx_F = 0.0;
+double vx_R = 0.0;
 double vx = 0.0;
 double vy = 0.0;
 double vth = 0.0;
@@ -184,32 +174,18 @@ double euler[3];         // [psi, theta, phi]    Euler angle container
 double ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 double quat_SI[4];
 
-void updateEncoder_FR()
+void updateEncoder_F()
 {
   // Add encoderValue by 1, each time it detects rising signal
   // from hall sensor A
-  encoderValue_FR += 1.0;
+  encoderValue_F += 1.0;
 }
 
-void updateEncoder_FL()
+void updateEncoder_R()
 {
   // Add encoderValue by 1, each time it detects rising signal
   // from hall sensor A
-  encoderValue_FL += 1.0;
-}
-
-void updateEncoder_RR()
-{
-  // Add encoderValue by 1, each time it detects rising signal
-  // from hall sensor A
-  encoderValue_RR += 1.0;
-}
-
-void updateEncoder_RL()
-{
-  // Add encoderValue by 1, each time it detects rising signal
-  // from hall sensor A
-  encoderValue_RL += 1.0;
+  encoderValue_R += 1.0;
 }
 
 void receive(int numBytes){
@@ -245,16 +221,12 @@ void setup() {
 
   bno.setExtCrystalUse(true);
 
-  pinMode(HALLSEN_FR_A, INPUT_PULLUP); // Set hall sensor A as input pullup
-  pinMode(HALLSEN_FL_A, INPUT_PULLUP); // Set hall sensor A as input pullup
-  pinMode(HALLSEN_RR_A, INPUT_PULLUP); // Set hall sensor A as input pullup
-  pinMode(HALLSEN_RL_A, INPUT_PULLUP); // Set hall sensor A as input pullup
-
+  pinMode(HALLSEN_FA, INPUT_PULLUP); // Set hall sensor A as input pullup
+  pinMode(HALLSEN_RA, INPUT_PULLUP); // Set hall sensor A as input pullup
+  
   // Attach interrupt at hall sensor A on each rising signal
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_FR_A), updateEncoder_FR, RISING);
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_FL_A), updateEncoder_FL, RISING);
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_RR_A), updateEncoder_RR, RISING);
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_RL_A), updateEncoder_RL, RISING);
+  attachInterrupt(digitalPinToInterrupt(HALLSEN_FA), updateEncoder_F, RISING);
+  attachInterrupt(digitalPinToInterrupt(HALLSEN_RA), updateEncoder_R, RISING);
 
   //Wire1.begin(I2C_SLAVE_ADDRESS);
 
@@ -388,20 +360,14 @@ void loop() {
   currentMillis = millis();
   if (currentMillis - previousMillis > interval) {
     // Revolutions per minute (RPM) = (total encoder pulse in 1s / motor encoder output) x 60s
-    rpm_FR = (double)(encoderValue_FR * 60.0 / ENCODEROUTPUT);
-    rpm_FL = (double)(encoderValue_FL * 60.0 / ENCODEROUTPUT);
-    rpm_RR = (double)(encoderValue_RR * 60.0 / ENCODEROUTPUT);
-    rpm_RL = (double)(encoderValue_RL * 60.0 / ENCODEROUTPUT);
+    rpm_F = (double)(encoderValue_F * 60.0 / ENCODEROUTPUT);
+    rpm_R = (double)(encoderValue_R * 60.0 / ENCODEROUTPUT);
     double factor_rpm_mps = ((2.0*3.14)*((65.0/2.0)/1000.0))/60.0;
-    vx_FR = abs(rpm_FR*factor_rpm_mps*5.0); // rpm_FR*2*PI/60*65/2.0/1000
-    vx_FL = abs(rpm_FL*factor_rpm_mps*5.0); // 4 is the correction factor
-    vx_RR = abs(rpm_RR*factor_rpm_mps*5.0);
-    vx_RL = abs(rpm_RL*factor_rpm_mps*5.0);
-    v_right = (vx_FR+vx_RR)/2.0;
-    v_left = (vx_FL+vx_RL)/2.0;
-    vx = (v_right + v_left)/2.0;
+    vx_F = abs(rpm_F*factor_rpm_mps*5.0); // rpm_FR*2*PI/60*65/2.0/1000
+    vx_R = abs(rpm_R*factor_rpm_mps*5.0);
+    vx = (vx_F + vx_R)/2.0;
     vy = 0.0;
-    vth = ((v_right - v_left)/lengthBetweenTwoWheels);
+    vth = 0.0;
     dt = currentMillis - previousMillis;
     delta_x = (vx * cos(th_driven)) * dt/1000.0;
     delta_y = (vx * sin(th_driven)) * dt/1000.0;
@@ -418,10 +384,8 @@ void loop() {
   
     previousMillis = currentMillis;
     // Reset the encoders 
-    encoderValue_FR = 0.0;
-    encoderValue_FL = 0.0;
-    encoderValue_RR = 0.0;
-    encoderValue_RL = 0.0;
+    encoderValue_F = 0.0;
+    encoderValue_R = 0.0;
   }
   
   //publish GPS data

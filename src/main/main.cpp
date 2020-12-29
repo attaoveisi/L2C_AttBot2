@@ -22,7 +22,7 @@ struct RECEIVE_DATA_STRUCTURE{
   double GPS_lo;
   // double GPS_ws;
   double GPS_alt;
-  // double GPS_heading;
+  double GPS_heading;
   // uint16_t GPS_year;
   // uint8_t GPS_month;
   // uint8_t GPS_day;
@@ -137,9 +137,13 @@ double ENCODEROUTPUT = 20; // Please insert your motor encoder output pulse per 
 
 double encoderValue_F = 0.0;
 double encoderValue_R = 0.0;
+double encoderValueOld_F = 0.0;
+double encoderValueOld_R = 0.0;
+double encoderValueTemp_F = 0.0;
+double encoderValueTemp_R = 0.0;
 
 int interval = 1000;
-long previousMillis = 0;
+long endMillis = 0;
 long currentMillis = 0;
 double rpm_F = 0.0;
 double rpm_R = 0.0;
@@ -162,10 +166,6 @@ int16_t gx_raw, gy_raw, gz_raw;
 double ax_raw_SI, ay_raw_SI, az_raw_SI;
 double gx_raw_SI, gy_raw_SI, gz_raw_SI;
 
-#define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
-#define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
-bool blinkState = false;
-
 double aa_SI[3];         // [x, y, z]            accel sensor measurements
 double aaReal_SI[3];     // [x, y, z]            gravity-free accel sensor measurements
 double gyroReal_SI[3];   // [x, y, z]            Gyro sensor measurements
@@ -173,20 +173,6 @@ double aaWorld_SI[3];    // [x, y, z]            world-frame accel sensor measur
 double euler[3];         // [psi, theta, phi]    Euler angle container
 double ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 double quat_SI[4];
-
-void updateEncoder_F()
-{
-  // Add encoderValue by 1, each time it detects rising signal
-  // from hall sensor A
-  encoderValue_F += 1.0;
-}
-
-void updateEncoder_R()
-{
-  // Add encoderValue by 1, each time it detects rising signal
-  // from hall sensor A
-  encoderValue_R += 1.0;
-}
 
 void receive(int numBytes){
 
@@ -210,24 +196,20 @@ uint8_t displayCalStatus(void)
 
 void setup() {
 
-  //Serial.begin(57600);
+  //Serial.begin(9600);
 
   while(!bno.begin())
   {
     /* There was a problem detecting the BNO055 ... check your connections */
     //Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-    //while(1);
+    while(1);
   }
-
+  delay(1000);
   bno.setExtCrystalUse(true);
 
   pinMode(HALLSEN_FA, INPUT_PULLUP); // Set hall sensor A as input pullup
   pinMode(HALLSEN_RA, INPUT_PULLUP); // Set hall sensor A as input pullup
   
-  // Attach interrupt at hall sensor A on each rising signal
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_FA), updateEncoder_F, RISING);
-  attachInterrupt(digitalPinToInterrupt(HALLSEN_RA), updateEncoder_R, RISING);
-
   //Wire1.begin(I2C_SLAVE_ADDRESS);
 
   //start the library, pass in the data details and the name of the serial port. Can be Serial, Serial1, Serial2, etc. 
@@ -303,6 +285,7 @@ void loop() {
   /* Get a new sensor event */ 
   sensors_event_t imu_event; 
   bno.getEvent(&imu_event);
+
   imu::Quaternion quat_imu = bno.getQuat();
   imu::Vector<3> lgyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
   imu::Vector<3> laccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
@@ -339,54 +322,66 @@ void loop() {
     //delay(2);
   }
 
-  // if(ET_GPS_data.receiveData()){
-  //   //this is how you access the variables. [name of the group].[variable name]
-  //   //since we have data, we will blink it out. 
-  //   GPS_la = GPS_data.GPS_la;
-  //   GPS_lo = GPS_data.GPS_lo;
-  //   // GPS_ws = GPS_data.GPS_ws;
-  //   GPS_alt = GPS_data.GPS_alt;
-  //   // GPS_heading = GPS_data.GPS_heading;
-  //   // GPS_year = GPS_data.GPS_year;
-  //   // GPS_month = GPS_data.GPS_month;
-  //   // GPS_day = GPS_data.GPS_day;
-  //   // GPS_hour = GPS_data.GPS_hour;
-  //   // GPS_minute = GPS_data.GPS_minute;
-  //   // GPS_second = GPS_data.GPS_second;
-  //   // GPS_centisecond = GPS_data.GPS_centisecond;
-  // }
+  if(ET_GPS_data.receiveData()){
+    //this is how you access the variables. [name of the group].[variable name]
+    //since we have data, we will blink it out. 
+    GPS_la = GPS_data.GPS_la;
+    GPS_lo = GPS_data.GPS_lo;
+    // GPS_ws = GPS_data.GPS_ws;
+    GPS_alt = GPS_data.GPS_alt;
+    GPS_heading = GPS_data.GPS_heading;
+    // GPS_year = GPS_data.GPS_year;
+    // GPS_month = GPS_data.GPS_month;
+    // GPS_day = GPS_data.GPS_day;
+    // GPS_hour = GPS_data.GPS_hour;
+    // GPS_minute = GPS_data.GPS_minute;
+    // GPS_second = GPS_data.GPS_second;
+    // GPS_centisecond = GPS_data.GPS_centisecond;
+  }
   
   // Update RPM value on every second
   currentMillis = millis();
-  if (currentMillis - previousMillis > interval) {
-    // Revolutions per minute (RPM) = (total encoder pulse in 1s / motor encoder output) x 60s
-    rpm_F = (double)(encoderValue_F * 60.0 / ENCODEROUTPUT);
-    rpm_R = (double)(encoderValue_R * 60.0 / ENCODEROUTPUT);
-    double factor_rpm_mps = ((2.0*3.14)*((65.0/2.0)/1000.0))/60.0;
-    vx_F = abs(rpm_F*factor_rpm_mps*5.0); // rpm_FR*2*PI/60*65/2.0/1000
-    vx_R = abs(rpm_R*factor_rpm_mps*5.0);
-    vx = (vx_F + vx_R)/2.0;
-    vy = 0.0;
-    vth = 0.0;
-    dt = currentMillis - previousMillis;
-    delta_x = (vx * cos(th_driven)) * dt/1000.0;
-    delta_y = (vx * sin(th_driven)) * dt/1000.0;
-    delta_th = vth * dt/1000.0;
-    x_driven += delta_x;
-    y_driven += delta_y;
-    th_driven += delta_th;
-    while (th_driven > PI) {
-      th_driven -= 2.0 * PI;
+  endMillis = currentMillis + interval;
+  while (millis() < endMillis) {
+    if (digitalRead(HALLSEN_FA)){
+      encoderValue_F += 1.0;
+      while (digitalRead(HALLSEN_FA));      
     }
-    while (th_driven < -PI) {
-      th_driven += 2.0 * PI;
+    if (digitalRead(HALLSEN_RA)){
+      encoderValue_R += 1.0;
+      while (digitalRead(HALLSEN_RA));      
     }
-  
-    previousMillis = currentMillis;
-    // Reset the encoders 
-    encoderValue_F = 0.0;
-    encoderValue_R = 0.0;
   }
+  encoderValueTemp_F  = encoderValue_F - encoderValueOld_F;
+  encoderValueOld_F = encoderValue_F;
+  encoderValueTemp_R  = encoderValue_R - encoderValueOld_R;
+  encoderValueOld_R = encoderValue_R;
+  rpm_F = (double)(encoderValueTemp_F * 60.0 / ENCODEROUTPUT);
+  rpm_R = (double)(encoderValueTemp_R * 60.0 / ENCODEROUTPUT);
+  double factor_rpm_mps = ((2.0*3.14)*((65.0/2.0)/1000.0))/60.0;
+  vx_F = abs(rpm_F*factor_rpm_mps*5.0); // rpm_FR*2*PI/60*65/2.0/1000
+  vx_R = abs(rpm_R*factor_rpm_mps*5.0);
+  vx = (vx_F + vx_R)/2.0;
+  vy = 0.0;
+  vth = 0.0;
+  dt = millis() - currentMillis;
+  delta_x = (vx * cos(th_driven)) * dt/1000.0;
+  delta_y = (vx * sin(th_driven)) * dt/1000.0;
+  delta_th = vth * dt/1000.0;
+  x_driven += delta_x;
+  y_driven += delta_y;
+  th_driven += delta_th;
+  while (th_driven > PI) {
+    th_driven -= 2.0 * PI;
+  }
+  while (th_driven < -PI) {
+    th_driven += 2.0 * PI;
+  }
+
+  // Reset the encoders 
+  encoderValue_F = 0.0;
+  encoderValue_R = 0.0;
+
   
   //publish GPS data
   gpsMsg.header.stamp = nh.now();

@@ -38,7 +38,7 @@
                 "/home/atta/AttBot2/L2C_AttBot2/lib/Plotter",
                 "/home/atta/AttBot2/L2C_AttBot2/lib/QMC5883L",
                 "/home/atta/AttBot2/L2C_AttBot2/lib/SD",
-                "/home/atta/AttBot2/L2C_AttBot2/lib/Time",
+                "/home/atta/AttBot2/L2C_AttBot2/lib/SoftwareSerial",
                 "/home/atta/AttBot2/L2C_AttBot2/lib/URTouch",
                 "/home/atta/AttBot2/L2C_AttBot2/lib/UTFT",
                 "/home/atta/AttBot2/L2C_AttBot2/lib/i2cdevlib",
@@ -82,7 +82,7 @@
                     "/home/atta/AttBot2/L2C_AttBot2/lib/Plotter",
                     "/home/atta/AttBot2/L2C_AttBot2/lib/QMC5883L",
                     "/home/atta/AttBot2/L2C_AttBot2/lib/SD",
-                    "/home/atta/AttBot2/L2C_AttBot2/lib/Time",
+                    "/home/atta/AttBot2/L2C_AttBot2/lib/SoftwareSerial",
                     "/home/atta/AttBot2/L2C_AttBot2/lib/URTouch",
                     "/home/atta/AttBot2/L2C_AttBot2/lib/UTFT",
                     "/home/atta/AttBot2/L2C_AttBot2/lib/i2cdevlib",
@@ -93,7 +93,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=50001",
+                "PLATFORMIO=50003",
                 "__SAM3X8E__",
                 "ARDUINO_SAM_DUE",
                 "ARDUINO=10805",
@@ -106,7 +106,7 @@
                 "ARDUINO_ARCH_SAM",
                 ""
             ],
-            "intelliSenseMode": "clang-x64",
+            "intelliSenseMode": "gcc-x64",
             "cStandard": "c11",
             "cppStandard": "c++11",
             "compilerPath": "/home/atta/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",

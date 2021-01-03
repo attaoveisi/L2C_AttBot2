@@ -1,62 +1,14 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <EasyTransferI2C.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
-
-//create an IMU object
-/* Set the delay between fresh samples */
-#define BNO055_SAMPLERATE_DELAY_MS (5)
-// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
-//                                   id, address
-Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
-
-//create a GPS object
-EasyTransferI2C ET_GPS_data; 
-
-struct RECEIVE_DATA_STRUCTURE{
-  //put your variable definitions here for the data you want to receive
-  //THIS MUST BE EXACTLY THE SAME ON THE OTHER ARDUINO
-  double GPS_la;
-  double GPS_lo;
-  // double GPS_ws;
-  double GPS_alt;
-  //double GPS_heading;
-  // uint16_t GPS_year;
-  // uint8_t GPS_month;
-  // uint8_t GPS_day;
-  // uint8_t GPS_hour;
-  // uint8_t GPS_minute;
-  // uint8_t GPS_second;
-  // uint8_t GPS_centisecond;
-};
-
-//give a name to the group of data
-RECEIVE_DATA_STRUCTURE GPS_data;
-
-//define slave i2c address
-#define I2C_SLAVE_ADDRESS 9
-
-bool state_GPS = LOW;
-int LED_GPS = 4;
-bool state_IMU = LOW;
-int LED_IMU = 5;
-void stateChange(bool & state, int LED){
-  state = !state;
-  digitalWrite(LED, state);  
-}
-
-// ROS includes
-//#define USE_USBCON
 #include <ros.h>
 #include <ros/time.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
-
 #include <tf/tf.h>
 #include <std_msgs/String.h>
 
@@ -75,6 +27,22 @@ void stateChange(bool & state, int LED){
 // Define following to enable service for returning covariance
 //#define _ODOM_COVAR_SERVER
 #endif
+
+//create an IMU object
+/* Set the delay between fresh samples */
+#define BNO055_SAMPLERATE_DELAY_MS (5)
+// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
+//                                   id, address
+Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
+
+bool state_odom = LOW;
+int LED_odom = 4;
+bool state_IMU = LOW;
+int LED_IMU = 5;
+void stateChange(bool & state, int LED){
+  state = !state;
+  digitalWrite(LED, state);  
+}
 
 ros::NodeHandle nh;
 
@@ -111,9 +79,6 @@ ros::ServiceServer<rosproxy_msgs::RequestOdometryCovariancesRequest, rosproxy_ms
 
 #define NORMALIZE(z) (atan2(sin(z), cos(z)))
 
-sensor_msgs::NavSatFix gpsMsg;
-ros::Publisher gps("gps", &gpsMsg);
-
 // Publisher object for filtered IMU
 sensor_msgs::Imu imumsg_filtered;
 geometry_msgs::Quaternion orientation;
@@ -123,22 +88,6 @@ double orientation_covariance[9];
 double angular_velocity_covariance[9];
 double linear_acceleration_covariance[9];
 ros::Publisher imu_data("imu_data", &imumsg_filtered);
-
-double GPS_la = 0.1;
-double GPS_lo = 0.1;
-double GPS_ws = 0.1;
-double GPS_alt = 0.1;
-double GPS_heading = 0.1;
-uint16_t GPS_year = 1;
-uint8_t GPS_month = 1;
-uint8_t GPS_day = 1;
-uint8_t GPS_hour = 1;
-uint8_t GPS_minute = 1;
-uint8_t GPS_second = 1;
-uint8_t GPS_centisecond = 1;
-#define GPS_Sampling_Time_ms 100
-unsigned long currentMillis_GPS = 0;
-unsigned long previousMillis_GPS = 0;
 
 double ENCODEROUTPUT = 20.0; // Please insert your motor encoder output pulse per rotation
 #define HALLSEN_RA 3 // Hall sensor A of front right wheel connected to pin A15 (external interrupt)
@@ -156,6 +105,7 @@ void updateEncoder_FA()
   // Add encoderValue by 1, each time it detects rising signal
   // from hall sensor A
   encoderValue_F += 1.0;
+  digitalWrite(LED_odom, HIGH);
 }
 
 void updateEncoder_RA()
@@ -163,6 +113,7 @@ void updateEncoder_RA()
   // Add encoderValue by 1, each time it detects rising signal
   // from hall sensor A
   encoderValue_R += 1.0;
+  digitalWrite(LED_odom, HIGH);
 }
 double radii = 65.0/2.0;
 unsigned long interval = 40;
@@ -218,15 +169,15 @@ uint8_t displayCalStatus(void)
 
 void setup() {
 
-  Serial.begin(57600);
+  //Serial.begin(57600);
 
-  pinMode(LED_GPS, OUTPUT); // Declare the LED as an output
+  pinMode(LED_odom, OUTPUT); // Declare the LED as an output
   pinMode(LED_IMU, OUTPUT); // Declare the LED as an output
 
   while(!bno.begin())
   {
     /* There was a problem detecting the BNO055 ... check your connections */
-    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    //Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     stateChange(state_IMU, LED_IMU);
     delay(1000);
     stateChange(state_IMU, LED_IMU);
@@ -239,14 +190,6 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(HALLSEN_FA), updateEncoder_FA, RISING);
   attachInterrupt(digitalPinToInterrupt(HALLSEN_RA), updateEncoder_RA, RISING);
-  
-  Wire1.begin(I2C_SLAVE_ADDRESS);
-
-  //start the library, pass in the data details and the name of the serial port. Can be Serial, Serial1, Serial2, etc. 
-  ET_GPS_data.begin(details(GPS_data), &Wire1);
-  
-  //define handler function on receiving data
-  Wire1.onReceive(receive);
 
   //Connect to ROS
   nh.initNode();
@@ -300,8 +243,6 @@ void setup() {
     odom_msg.twist.covariance[35] = 1000;
   #endif
 
-  //nh.advertise(gps);
-
   //advertise IMU filtered data
   nh.advertise(imu_data);
 }
@@ -311,6 +252,7 @@ void setup() {
 // ================================================================
 
 void loop() {
+  digitalWrite(LED_odom, LOW);
 
   /* Get a new sensor event */ 
   sensors_event_t imu_event; 
@@ -329,7 +271,7 @@ void loop() {
   quat_SI[1] = quat_imu.x();
   quat_SI[2] = quat_imu.y();
   quat_SI[3] = quat_imu.z();
-  Serial.println(quat_imu.z());
+  //Serial.println(quat_imu.z());
   delay(BNO055_SAMPLERATE_DELAY_MS);
 
   //publish imu filtered data
@@ -354,27 +296,6 @@ void loop() {
     digitalWrite(LED_IMU, HIGH);
   }else{
     stateChange(state_IMU, LED_IMU);
-  }
-
-  if(ET_GPS_data.receiveData()){
-    digitalWrite(LED_GPS, HIGH);
-    //this is how you access the variables. [name of the group].[variable name]
-    //since we have data, we will blink it out. 
-    GPS_la = GPS_data.GPS_la;
-    GPS_lo = GPS_data.GPS_lo;
-    // GPS_ws = GPS_data.GPS_ws;
-    GPS_alt = GPS_data.GPS_alt;
-    // GPS_heading = GPS_data.GPS_heading;
-    // Serial.println(GPS_alt);
-    // GPS_year = GPS_data.GPS_year;
-    // GPS_month = GPS_data.GPS_month;
-    // GPS_day = GPS_data.GPS_day;
-    // GPS_hour = GPS_data.GPS_hour;
-    // GPS_minute = GPS_data.GPS_minute;
-    // GPS_second = GPS_data.GPS_second;
-    // GPS_centisecond = GPS_data.GPS_centisecond;
-  }else{
-    stateChange(state_GPS, LED_GPS);
   }
   
   // Update RPM value on every second
@@ -404,20 +325,8 @@ void loop() {
     // Reset the encoders 
     encoderValue_F = 0.0;
     encoderValue_R = 0.0;
-  
   }
   
-  //publish GPS data
-  // gpsMsg.header.stamp = nh.now();
-  // gpsMsg.header.frame_id = "map";
-  // gpsMsg.latitude = GPS_la;
-  // gpsMsg.longitude = GPS_lo;
-  // gpsMsg.altitude = GPS_alt;
-  // gps.publish(&gpsMsg);
-  // //nh.spinOnce();
-  // delay(2);
-
-
   //New version:
   geometry_msgs::Quaternion quat_ros = tf::createQuaternionFromYaw(th_driven);
   #ifdef _ODOM_PROXY
@@ -460,6 +369,7 @@ void loop() {
     odom_msg.twist.twist.angular.z = vth;
     odom_pub.publish( &odom_msg );
   #endif
+
   nh.spinOnce();
   delay(2);
 }

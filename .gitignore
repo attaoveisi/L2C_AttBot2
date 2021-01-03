@@ -2,6 +2,9 @@
 *.o
 .pio/
 .vscode/
+.idea/
+~/
 
 # Ada Library Information
 *.ali
+

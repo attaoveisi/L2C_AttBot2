@@ -23,17 +23,23 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
       _stop_controllers_type * stop_controllers;
       typedef int32_t _strictness_type;
       _strictness_type strictness;
+      typedef bool _start_asap_type;
+      _start_asap_type start_asap;
+      typedef float _timeout_type;
+      _timeout_type timeout;
       enum { BEST_EFFORT = 1 };
       enum { STRICT = 2 };
 
     SwitchControllerRequest():
-      start_controllers_length(0), start_controllers(NULL),
-      stop_controllers_length(0), stop_controllers(NULL),
-      strictness(0)
+      start_controllers_length(0), st_start_controllers(), start_controllers(nullptr),
+      stop_controllers_length(0), st_stop_controllers(), stop_controllers(nullptr),
+      strictness(0),
+      start_asap(0),
+      timeout(0)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->start_controllers_length >> (8 * 0)) & 0xFF;
@@ -70,10 +76,18 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
       *(outbuffer + offset + 2) = (u_strictness.base >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (u_strictness.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->strictness);
+      union {
+        bool real;
+        uint8_t base;
+      } u_start_asap;
+      u_start_asap.real = this->start_asap;
+      *(outbuffer + offset + 0) = (u_start_asap.base >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->start_asap);
+      offset += serializeAvrFloat64(outbuffer + offset, this->timeout);
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t start_controllers_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -127,11 +141,20 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
       u_strictness.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
       this->strictness = u_strictness.real;
       offset += sizeof(this->strictness);
+      union {
+        bool real;
+        uint8_t base;
+      } u_start_asap;
+      u_start_asap.base = 0;
+      u_start_asap.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      this->start_asap = u_start_asap.real;
+      offset += sizeof(this->start_asap);
+      offset += deserializeAvrFloat64(inbuffer + offset, &(this->timeout));
      return offset;
     }
 
-    const char * getType(){ return SWITCHCONTROLLER; };
-    const char * getMD5(){ return "434da54adc434a5af5743ed711fd6ba1"; };
+    virtual const char * getType() override { return SWITCHCONTROLLER; };
+    virtual const char * getMD5() override { return "36d99a977432b71d4bf16ce5847949d7"; };
 
   };
 
@@ -146,7 +169,7 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       union {
@@ -159,7 +182,7 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       union {
@@ -173,8 +196,8 @@ static const char SWITCHCONTROLLER[] = "controller_manager_msgs/SwitchController
      return offset;
     }
 
-    const char * getType(){ return SWITCHCONTROLLER; };
-    const char * getMD5(){ return "6f6da3883749771fac40d6deb24a8c02"; };
+    virtual const char * getType() override { return SWITCHCONTROLLER; };
+    virtual const char * getMD5() override { return "6f6da3883749771fac40d6deb24a8c02"; };
 
   };
 

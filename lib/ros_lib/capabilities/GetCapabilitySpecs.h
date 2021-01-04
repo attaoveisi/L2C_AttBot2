@@ -19,20 +19,20 @@ static const char GETCAPABILITYSPECS[] = "capabilities/GetCapabilitySpecs";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
      return offset;
     }
 
-    const char * getType(){ return GETCAPABILITYSPECS; };
-    const char * getMD5(){ return "d41d8cd98f00b204e9800998ecf8427e"; };
+    virtual const char * getType() override { return GETCAPABILITYSPECS; };
+    virtual const char * getMD5() override { return "d41d8cd98f00b204e9800998ecf8427e"; };
 
   };
 
@@ -45,11 +45,11 @@ static const char GETCAPABILITYSPECS[] = "capabilities/GetCapabilitySpecs";
       _capability_specs_type * capability_specs;
 
     GetCapabilitySpecsResponse():
-      capability_specs_length(0), capability_specs(NULL)
+      capability_specs_length(0), st_capability_specs(), capability_specs(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->capability_specs_length >> (8 * 0)) & 0xFF;
@@ -63,7 +63,7 @@ static const char GETCAPABILITYSPECS[] = "capabilities/GetCapabilitySpecs";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t capability_specs_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -81,8 +81,8 @@ static const char GETCAPABILITYSPECS[] = "capabilities/GetCapabilitySpecs";
      return offset;
     }
 
-    const char * getType(){ return GETCAPABILITYSPECS; };
-    const char * getMD5(){ return "70274a8d27cd41f8e0754661d97168f8"; };
+    virtual const char * getType() override { return GETCAPABILITYSPECS; };
+    virtual const char * getMD5() override { return "70274a8d27cd41f8e0754661d97168f8"; };
 
   };
 

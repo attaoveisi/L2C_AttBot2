@@ -19,20 +19,20 @@ static const char GETRUNNINGCAPABILITIES[] = "capabilities/GetRunningCapabilitie
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
      return offset;
     }
 
-    const char * getType(){ return GETRUNNINGCAPABILITIES; };
-    const char * getMD5(){ return "d41d8cd98f00b204e9800998ecf8427e"; };
+    virtual const char * getType() override { return GETRUNNINGCAPABILITIES; };
+    virtual const char * getMD5() override { return "d41d8cd98f00b204e9800998ecf8427e"; };
 
   };
 
@@ -45,11 +45,11 @@ static const char GETRUNNINGCAPABILITIES[] = "capabilities/GetRunningCapabilitie
       _running_capabilities_type * running_capabilities;
 
     GetRunningCapabilitiesResponse():
-      running_capabilities_length(0), running_capabilities(NULL)
+      running_capabilities_length(0), st_running_capabilities(), running_capabilities(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->running_capabilities_length >> (8 * 0)) & 0xFF;
@@ -63,7 +63,7 @@ static const char GETRUNNINGCAPABILITIES[] = "capabilities/GetRunningCapabilitie
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t running_capabilities_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -81,8 +81,8 @@ static const char GETRUNNINGCAPABILITIES[] = "capabilities/GetRunningCapabilitie
      return offset;
     }
 
-    const char * getType(){ return GETRUNNINGCAPABILITIES; };
-    const char * getMD5(){ return "e8e5cf68c34711ffaa719728f34ea7a3"; };
+    virtual const char * getType() override { return GETRUNNINGCAPABILITIES; };
+    virtual const char * getMD5() override { return "e8e5cf68c34711ffaa719728f34ea7a3"; };
 
   };
 

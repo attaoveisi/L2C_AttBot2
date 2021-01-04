@@ -29,7 +29,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
@@ -38,7 +38,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
@@ -47,8 +47,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/AutoDockingActionResult"; };
-    const char * getMD5(){ return "3fb2b9cd9cec6b4cb23b224521dd7679"; };
+    virtual const char * getType() override { return "kobuki_msgs/AutoDockingActionResult"; };
+    virtual const char * getMD5() override { return "3fb2b9cd9cec6b4cb23b224521dd7679"; };
 
   };
 

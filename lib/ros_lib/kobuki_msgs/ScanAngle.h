@@ -24,7 +24,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
@@ -32,7 +32,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
@@ -40,8 +40,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/ScanAngle"; };
-    const char * getMD5(){ return "06e2c839dc5c7f5c13ac09a8b4ff0a6a"; };
+    virtual const char * getType() override { return "kobuki_msgs/ScanAngle"; };
+    virtual const char * getMD5() override { return "06e2c839dc5c7f5c13ac09a8b4ff0a6a"; };
 
   };
 

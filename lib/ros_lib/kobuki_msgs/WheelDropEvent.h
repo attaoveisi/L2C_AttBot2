@@ -27,7 +27,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->wheel >> (8 * 0)) & 0xFF;
@@ -37,7 +37,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       this->wheel =  ((uint8_t) (*(inbuffer + offset)));
@@ -47,8 +47,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/WheelDropEvent"; };
-    const char * getMD5(){ return "e102837d89384d67669a0df86b63f33b"; };
+    virtual const char * getType() override { return "kobuki_msgs/WheelDropEvent"; };
+    virtual const char * getMD5() override { return "e102837d89384d67669a0df86b63f33b"; };
 
   };
 

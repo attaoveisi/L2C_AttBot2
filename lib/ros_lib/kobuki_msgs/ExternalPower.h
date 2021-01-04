@@ -29,7 +29,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->source >> (8 * 0)) & 0xFF;
@@ -39,7 +39,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       this->source =  ((uint8_t) (*(inbuffer + offset)));
@@ -49,8 +49,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/ExternalPower"; };
-    const char * getMD5(){ return "95149d524971a4c6d19e64c827307194"; };
+    virtual const char * getType() override { return "kobuki_msgs/ExternalPower"; };
+    virtual const char * getMD5() override { return "95149d524971a4c6d19e64c827307194"; };
 
   };
 

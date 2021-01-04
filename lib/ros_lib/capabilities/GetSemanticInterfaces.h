@@ -21,7 +21,7 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_interface = strlen(this->interface);
@@ -32,7 +32,7 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_interface;
@@ -47,8 +47,8 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
      return offset;
     }
 
-    const char * getType(){ return GETSEMANTICINTERFACES; };
-    const char * getMD5(){ return "93320216b0fbc8adb649c496cbdb1617"; };
+    virtual const char * getType() override { return GETSEMANTICINTERFACES; };
+    virtual const char * getMD5() override { return "93320216b0fbc8adb649c496cbdb1617"; };
 
   };
 
@@ -61,11 +61,11 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
       _semantic_interfaces_type * semantic_interfaces;
 
     GetSemanticInterfacesResponse():
-      semantic_interfaces_length(0), semantic_interfaces(NULL)
+      semantic_interfaces_length(0), st_semantic_interfaces(), semantic_interfaces(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->semantic_interfaces_length >> (8 * 0)) & 0xFF;
@@ -83,7 +83,7 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t semantic_interfaces_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -109,8 +109,8 @@ static const char GETSEMANTICINTERFACES[] = "capabilities/GetSemanticInterfaces"
      return offset;
     }
 
-    const char * getType(){ return GETSEMANTICINTERFACES; };
-    const char * getMD5(){ return "39999c138d8c9996d9ce71d837242710"; };
+    virtual const char * getType() override { return GETSEMANTICINTERFACES; };
+    virtual const char * getMD5() override { return "39999c138d8c9996d9ce71d837242710"; };
 
   };
 

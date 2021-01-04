@@ -26,13 +26,13 @@ namespace capabilities
 
     RunningCapability():
       capability(),
-      dependent_capabilities_length(0), dependent_capabilities(NULL),
+      dependent_capabilities_length(0), st_dependent_capabilities(), dependent_capabilities(nullptr),
       started_by(""),
       pid(0)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->capability.serialize(outbuffer + offset);
@@ -62,7 +62,7 @@ namespace capabilities
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->capability.deserialize(inbuffer + offset);
@@ -101,8 +101,8 @@ namespace capabilities
      return offset;
     }
 
-    const char * getType(){ return "capabilities/RunningCapability"; };
-    const char * getMD5(){ return "f97e2b23f907893008679ba2ff64fafc"; };
+    virtual const char * getType() override { return "capabilities/RunningCapability"; };
+    virtual const char * getMD5() override { return "f97e2b23f907893008679ba2ff64fafc"; };
 
   };
 

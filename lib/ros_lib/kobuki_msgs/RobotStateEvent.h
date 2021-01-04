@@ -22,7 +22,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->state >> (8 * 0)) & 0xFF;
@@ -30,7 +30,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       this->state =  ((uint8_t) (*(inbuffer + offset)));
@@ -38,8 +38,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/RobotStateEvent"; };
-    const char * getMD5(){ return "c6eccd4cb1f95df95635b56d6226ea32"; };
+    virtual const char * getType() override { return "kobuki_msgs/RobotStateEvent"; };
+    virtual const char * getMD5() override { return "c6eccd4cb1f95df95635b56d6226ea32"; };
 
   };
 

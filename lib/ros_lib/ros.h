@@ -49,10 +49,6 @@ namespace ros
   /* downsize our buffers */
   typedef NodeHandle_<ArduinoHardware, 6, 6, 150, 150> NodeHandle;
 
-//#elif defined(__AVR_ATmega2560__)
-
-//  typedef NodeHandle_<ArduinoHardware, 5, 5, 2048, 2048> NodeHandle;
-
 #elif defined(__AVR_ATmega328P__)
 
   typedef NodeHandle_<ArduinoHardware, 25, 25, 280, 280> NodeHandle;

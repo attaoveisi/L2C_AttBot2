@@ -22,7 +22,7 @@ static const char GETCAPABILITYSPEC[] = "capabilities/GetCapabilitySpec";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_capability_spec = strlen(this->capability_spec);
@@ -33,7 +33,7 @@ static const char GETCAPABILITYSPEC[] = "capabilities/GetCapabilitySpec";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_capability_spec;
@@ -48,8 +48,8 @@ static const char GETCAPABILITYSPEC[] = "capabilities/GetCapabilitySpec";
      return offset;
     }
 
-    const char * getType(){ return GETCAPABILITYSPEC; };
-    const char * getMD5(){ return "0d24c4211d85e38f4c925c9fe87cce03"; };
+    virtual const char * getType() override { return GETCAPABILITYSPEC; };
+    virtual const char * getMD5() override { return "0d24c4211d85e38f4c925c9fe87cce03"; };
 
   };
 
@@ -64,22 +64,22 @@ static const char GETCAPABILITYSPEC[] = "capabilities/GetCapabilitySpec";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->capability_spec.serialize(outbuffer + offset);
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->capability_spec.deserialize(inbuffer + offset);
      return offset;
     }
 
-    const char * getType(){ return GETCAPABILITYSPEC; };
-    const char * getMD5(){ return "0144e716993364573443fef8a936aef2"; };
+    virtual const char * getType() override { return GETCAPABILITYSPEC; };
+    virtual const char * getMD5() override { return "0144e716993364573443fef8a936aef2"; };
 
   };
 

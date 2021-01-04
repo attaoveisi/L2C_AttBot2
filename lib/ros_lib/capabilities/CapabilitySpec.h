@@ -29,7 +29,7 @@ namespace capabilities
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_package = strlen(this->package);
@@ -55,7 +55,7 @@ namespace capabilities
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_package;
@@ -97,8 +97,8 @@ namespace capabilities
      return offset;
     }
 
-    const char * getType(){ return "capabilities/CapabilitySpec"; };
-    const char * getMD5(){ return "410c606586817322b7ad85c73e4a4c9f"; };
+    virtual const char * getType() override { return "capabilities/CapabilitySpec"; };
+    virtual const char * getMD5() override { return "410c606586817322b7ad85c73e4a4c9f"; };
 
   };
 

@@ -31,7 +31,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->sensor >> (8 * 0)) & 0xFF;
@@ -44,7 +44,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       this->sensor =  ((uint8_t) (*(inbuffer + offset)));
@@ -57,8 +57,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/CliffEvent"; };
-    const char * getMD5(){ return "c5b106efbb1427a94f517c5e05f06295"; };
+    virtual const char * getType() override { return "kobuki_msgs/CliffEvent"; };
+    virtual const char * getMD5() override { return "c5b106efbb1427a94f517c5e05f06295"; };
 
   };
 

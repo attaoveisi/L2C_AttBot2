@@ -21,7 +21,7 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_capability = strlen(this->capability);
@@ -32,7 +32,7 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_capability;
@@ -47,8 +47,8 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
      return offset;
     }
 
-    const char * getType(){ return STOPCAPABILITY; };
-    const char * getMD5(){ return "e0d1dd20c6cc3fed63f3710228856be9"; };
+    virtual const char * getType() override { return STOPCAPABILITY; };
+    virtual const char * getMD5() override { return "e0d1dd20c6cc3fed63f3710228856be9"; };
 
   };
 
@@ -63,7 +63,7 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       union {
@@ -76,7 +76,7 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       union {
@@ -90,8 +90,8 @@ static const char STOPCAPABILITY[] = "capabilities/StopCapability";
      return offset;
     }
 
-    const char * getType(){ return STOPCAPABILITY; };
-    const char * getMD5(){ return "6ccdb752b565be6d250259ff3d0c7ea1"; };
+    virtual const char * getType() override { return STOPCAPABILITY; };
+    virtual const char * getMD5() override { return "6ccdb752b565be6d250259ff3d0c7ea1"; };
 
   };
 

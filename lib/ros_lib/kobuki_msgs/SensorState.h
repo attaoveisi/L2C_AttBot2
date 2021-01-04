@@ -91,15 +91,15 @@ namespace kobuki_msgs
       buttons(0),
       charger(0),
       battery(0),
-      bottom_length(0), bottom(NULL),
-      current_length(0), current(NULL),
+      bottom_length(0), st_bottom(), bottom(nullptr),
+      current_length(0), st_current(), current(nullptr),
       over_current(0),
       digital_input(0),
-      analog_input_length(0), analog_input(NULL)
+      analog_input_length(0), st_analog_input(), analog_input(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
@@ -175,7 +175,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
@@ -265,8 +265,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/SensorState"; };
-    const char * getMD5(){ return "430a4bfd78449c8740bfef32b26613a6"; };
+    virtual const char * getType() override { return "kobuki_msgs/SensorState"; };
+    virtual const char * getMD5() override { return "430a4bfd78449c8740bfef32b26613a6"; };
 
   };
 

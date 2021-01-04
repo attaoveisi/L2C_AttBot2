@@ -18,20 +18,20 @@ static const char ESTABLISHBOND[] = "capabilities/EstablishBond";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
      return offset;
     }
 
-    const char * getType(){ return ESTABLISHBOND; };
-    const char * getMD5(){ return "d41d8cd98f00b204e9800998ecf8427e"; };
+    virtual const char * getType() override { return ESTABLISHBOND; };
+    virtual const char * getMD5() override { return "d41d8cd98f00b204e9800998ecf8427e"; };
 
   };
 
@@ -46,7 +46,7 @@ static const char ESTABLISHBOND[] = "capabilities/EstablishBond";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_bond_id = strlen(this->bond_id);
@@ -57,7 +57,7 @@ static const char ESTABLISHBOND[] = "capabilities/EstablishBond";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_bond_id;
@@ -72,8 +72,8 @@ static const char ESTABLISHBOND[] = "capabilities/EstablishBond";
      return offset;
     }
 
-    const char * getType(){ return ESTABLISHBOND; };
-    const char * getMD5(){ return "5dec67991af973eddfa86dc20c3faef0"; };
+    virtual const char * getType() override { return ESTABLISHBOND; };
+    virtual const char * getMD5() override { return "5dec67991af973eddfa86dc20c3faef0"; };
 
   };
 

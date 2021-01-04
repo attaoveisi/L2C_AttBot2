@@ -31,12 +31,12 @@ namespace kobuki_msgs
       hardware(""),
       firmware(""),
       software(""),
-      udid_length(0), udid(NULL),
+      udid_length(0), st_udid(), udid(nullptr),
       features(0)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_hardware = strlen(this->hardware);
@@ -78,7 +78,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_hardware;
@@ -136,8 +136,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/VersionInfo"; };
-    const char * getMD5(){ return "3dc0ce6edd49be1fc86730f4a4a21861"; };
+    virtual const char * getType() override { return "kobuki_msgs/VersionInfo"; };
+    virtual const char * getMD5() override { return "3dc0ce6edd49be1fc86730f4a4a21861"; };
 
   };
 

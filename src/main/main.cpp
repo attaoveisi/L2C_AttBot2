@@ -1,3 +1,4 @@
+#define USB_USBCON
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -245,6 +246,7 @@ void setup() {
 
   //advertise IMU filtered data
   nh.advertise(imu_data);
+  while(!nh.connected()) {nh.spinOnce();}
 }
 
 // ================================================================
@@ -291,12 +293,13 @@ void loop() {
   imumsg_filtered.angular_velocity_covariance[0] = -1;
   uint8_t bno_system_out = displayCalStatus();
   if (bno_system_out>0){
-    imu_data.publish(&imumsg_filtered);
     delay(2);
     digitalWrite(LED_IMU, HIGH);
   }else{
     stateChange(state_IMU, LED_IMU);
+    while(!bno.begin());
   }
+  imu_data.publish(&imumsg_filtered);
   
   // Update RPM value on every second
   currentMillis = millis();
@@ -371,5 +374,5 @@ void loop() {
   #endif
 
   nh.spinOnce();
-  delay(2);
+  delay(20);
 }

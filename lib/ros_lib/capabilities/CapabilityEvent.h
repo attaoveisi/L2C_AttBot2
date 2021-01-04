@@ -37,7 +37,7 @@ namespace capabilities
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
@@ -69,7 +69,7 @@ namespace capabilities
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
@@ -114,8 +114,8 @@ namespace capabilities
      return offset;
     }
 
-    const char * getType(){ return "capabilities/CapabilityEvent"; };
-    const char * getMD5(){ return "5a0d82ee1a8e7a5d0b058f0b20305b18"; };
+    virtual const char * getType() override { return "capabilities/CapabilityEvent"; };
+    virtual const char * getMD5() override { return "5a0d82ee1a8e7a5d0b058f0b20305b18"; };
 
   };
 

@@ -21,7 +21,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       for( uint32_t i = 0; i < 4; i++){
@@ -45,7 +45,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       for( uint32_t i = 0; i < 4; i++){
@@ -71,8 +71,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/DigitalOutput"; };
-    const char * getMD5(){ return "1e97cd7f196a0270516b506e8bf29ca2"; };
+    virtual const char * getType() override { return "kobuki_msgs/DigitalOutput"; };
+    virtual const char * getMD5() override { return "1e97cd7f196a0270516b506e8bf29ca2"; };
 
   };
 

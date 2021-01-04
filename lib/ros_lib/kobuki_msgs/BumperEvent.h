@@ -28,7 +28,7 @@ namespace kobuki_msgs
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->bumper >> (8 * 0)) & 0xFF;
@@ -38,7 +38,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       this->bumper =  ((uint8_t) (*(inbuffer + offset)));
@@ -48,8 +48,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/BumperEvent"; };
-    const char * getMD5(){ return "ffe360cd50f14f9251d9844083e72ac5"; };
+    virtual const char * getType() override { return "kobuki_msgs/BumperEvent"; };
+    virtual const char * getMD5() override { return "ffe360cd50f14f9251d9844083e72ac5"; };
 
   };
 

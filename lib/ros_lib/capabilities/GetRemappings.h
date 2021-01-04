@@ -22,7 +22,7 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_spec = strlen(this->spec);
@@ -33,7 +33,7 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_spec;
@@ -48,8 +48,8 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
      return offset;
     }
 
-    const char * getType(){ return GETREMAPPINGS; };
-    const char * getMD5(){ return "bf89a64acee91503026f8c35448cf63c"; };
+    virtual const char * getType() override { return GETREMAPPINGS; };
+    virtual const char * getMD5() override { return "bf89a64acee91503026f8c35448cf63c"; };
 
   };
 
@@ -74,14 +74,14 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
       _parameters_type * parameters;
 
     GetRemappingsResponse():
-      topics_length(0), topics(NULL),
-      services_length(0), services(NULL),
-      actions_length(0), actions(NULL),
-      parameters_length(0), parameters(NULL)
+      topics_length(0), st_topics(), topics(nullptr),
+      services_length(0), st_services(), services(nullptr),
+      actions_length(0), st_actions(), actions(nullptr),
+      parameters_length(0), st_parameters(), parameters(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->topics_length >> (8 * 0)) & 0xFF;
@@ -119,7 +119,7 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t topics_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -173,8 +173,8 @@ static const char GETREMAPPINGS[] = "capabilities/GetRemappings";
      return offset;
     }
 
-    const char * getType(){ return GETREMAPPINGS; };
-    const char * getMD5(){ return "415cd1db0ffcce80349919d43c587ff2"; };
+    virtual const char * getType() override { return GETREMAPPINGS; };
+    virtual const char * getMD5() override { return "415cd1db0ffcce80349919d43c587ff2"; };
 
   };
 

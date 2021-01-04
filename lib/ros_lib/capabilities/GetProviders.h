@@ -24,7 +24,7 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       uint32_t length_interface = strlen(this->interface);
@@ -42,7 +42,7 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t length_interface;
@@ -65,8 +65,8 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
      return offset;
     }
 
-    const char * getType(){ return GETPROVIDERS; };
-    const char * getMD5(){ return "ae99773830cfbf75aa47ccf9b6e5018e"; };
+    virtual const char * getType() override { return GETPROVIDERS; };
+    virtual const char * getMD5() override { return "ae99773830cfbf75aa47ccf9b6e5018e"; };
 
   };
 
@@ -81,12 +81,12 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
       _default_provider_type default_provider;
 
     GetProvidersResponse():
-      providers_length(0), providers(NULL),
+      providers_length(0), st_providers(), providers(nullptr),
       default_provider("")
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       *(outbuffer + offset + 0) = (this->providers_length >> (8 * 0)) & 0xFF;
@@ -109,7 +109,7 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       uint32_t providers_lengthT = ((uint32_t) (*(inbuffer + offset))); 
@@ -144,8 +144,8 @@ static const char GETPROVIDERS[] = "capabilities/GetProviders";
      return offset;
     }
 
-    const char * getType(){ return GETPROVIDERS; };
-    const char * getMD5(){ return "f07bf2dab3c1c90f7df32f0732047bbd"; };
+    virtual const char * getType() override { return GETPROVIDERS; };
+    virtual const char * getMD5() override { return "f07bf2dab3c1c90f7df32f0732047bbd"; };
 
   };
 

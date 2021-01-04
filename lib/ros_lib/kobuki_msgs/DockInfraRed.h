@@ -28,11 +28,11 @@ namespace kobuki_msgs
 
     DockInfraRed():
       header(),
-      data_length(0), data(NULL)
+      data_length(0), st_data(), data(nullptr)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
@@ -48,7 +48,7 @@ namespace kobuki_msgs
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
@@ -68,8 +68,8 @@ namespace kobuki_msgs
      return offset;
     }
 
-    const char * getType(){ return "kobuki_msgs/DockInfraRed"; };
-    const char * getMD5(){ return "a3d77f7d15e50579473dcc24e9b97b34"; };
+    virtual const char * getType() override { return "kobuki_msgs/DockInfraRed"; };
+    virtual const char * getMD5() override { return "a3d77f7d15e50579473dcc24e9b97b34"; };
 
   };
 

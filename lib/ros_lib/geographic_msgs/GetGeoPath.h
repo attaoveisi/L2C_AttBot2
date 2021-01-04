@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ros/msg.h"
+#include "uuid_msgs/UniqueID.h"
 #include "geographic_msgs/GeoPoint.h"
 #include "geographic_msgs/GeoPath.h"
 
@@ -26,7 +27,7 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       offset += this->start.serialize(outbuffer + offset);
@@ -34,7 +35,7 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       offset += this->start.deserialize(inbuffer + offset);
@@ -42,8 +43,8 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
      return offset;
     }
 
-    const char * getType(){ return GETGEOPATH; };
-    const char * getMD5(){ return "cad6de11e4ae4ca568785186e1f99f89"; };
+    virtual const char * getType() override { return GETGEOPATH; };
+    virtual const char * getMD5() override { return "cad6de11e4ae4ca568785186e1f99f89"; };
 
   };
 
@@ -56,15 +57,27 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
       _status_type status;
       typedef geographic_msgs::GeoPath _plan_type;
       _plan_type plan;
+      typedef uuid_msgs::UniqueID _network_type;
+      _network_type network;
+      typedef uuid_msgs::UniqueID _start_seg_type;
+      _start_seg_type start_seg;
+      typedef uuid_msgs::UniqueID _goal_seg_type;
+      _goal_seg_type goal_seg;
+      typedef float _distance_type;
+      _distance_type distance;
 
     GetGeoPathResponse():
       success(0),
       status(""),
-      plan()
+      plan(),
+      network(),
+      start_seg(),
+      goal_seg(),
+      distance(0)
     {
     }
 
-    virtual int serialize(unsigned char *outbuffer) const
+    virtual int serialize(unsigned char *outbuffer) const override
     {
       int offset = 0;
       union {
@@ -80,10 +93,14 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
       memcpy(outbuffer + offset, this->status, length_status);
       offset += length_status;
       offset += this->plan.serialize(outbuffer + offset);
+      offset += this->network.serialize(outbuffer + offset);
+      offset += this->start_seg.serialize(outbuffer + offset);
+      offset += this->goal_seg.serialize(outbuffer + offset);
+      offset += serializeAvrFloat64(outbuffer + offset, this->distance);
       return offset;
     }
 
-    virtual int deserialize(unsigned char *inbuffer)
+    virtual int deserialize(unsigned char *inbuffer) override
     {
       int offset = 0;
       union {
@@ -104,11 +121,15 @@ static const char GETGEOPATH[] = "geographic_msgs/GetGeoPath";
       this->status = (char *)(inbuffer + offset-1);
       offset += length_status;
       offset += this->plan.deserialize(inbuffer + offset);
+      offset += this->network.deserialize(inbuffer + offset);
+      offset += this->start_seg.deserialize(inbuffer + offset);
+      offset += this->goal_seg.deserialize(inbuffer + offset);
+      offset += deserializeAvrFloat64(inbuffer + offset, &(this->distance));
      return offset;
     }
 
-    const char * getType(){ return GETGEOPATH; };
-    const char * getMD5(){ return "a76cd333bccd6c700c1b1b87dd5a3394"; };
+    virtual const char * getType() override { return GETGEOPATH; };
+    virtual const char * getMD5() override { return "0562f4b72e4d5b8e5fa142bd7363638c"; };
 
   };
 

@@ -16,6 +16,8 @@ The calibration of the BNO055 is being tracked by an additional LED. In the begi
 
 The odometry is realized by two motor encoders and the steering wheel angle estimation. An open loop single-trach model is used for forward estimation of the 2D velocities and position. It is assummed that AttBot 2.0 is only able to move on the horizontal plane (trust me it won't fly).
 
+![image](https://user-images.githubusercontent.com/17289954/103784784-aa466f00-503a-11eb-831b-af1cb9ea563d.png)
+
 two motor encoders are implemented on the front and wheel axis as it can be seen below (with the accuray of 20 ticks per one round):
 
 ![image](https://user-images.githubusercontent.com/17289954/103779090-87fd2300-5033-11eb-8899-f1b6ed48ae03.png)

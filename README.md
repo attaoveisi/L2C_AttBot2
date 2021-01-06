@@ -34,4 +34,4 @@ If you are wondering about the wheels, yes, I replaced the bulky wheels of the o
 
 The steering angle is calculated by estimating the relative yaw movements between the BNO055 and GY-85. For GY-85, a simple compound filter is used to usimated the absolute angles.
 
-
+The odometry message is also communicated with Raspberry Pi 4 per rosserial.

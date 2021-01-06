@@ -20,4 +20,18 @@ two motor encoders are implemented on the front and wheel axis as it can be seen
 
 ![image](https://user-images.githubusercontent.com/17289954/103779090-87fd2300-5033-11eb-8899-f1b6ed48ae03.png)
 
+the single track model also needs the  front wheel angle which is difficult to measure by my limited budget for the robot. Therefore, I have attached an additional `GY-85` modul which delivers the following raw data:
+
+ITG3205 (3-Achsen-Drehratensensor )
+ADXL345 (3-Achsen-Beschleunigungssensor)
+HMC5883L (3-Achsen Digitalkompass)
+
+as it can be seen here:
+
+![image](https://user-images.githubusercontent.com/17289954/103779556-399c5400-5034-11eb-8fcf-527c7d5082f6.png)
+
+If you are wondering about the wheels, yes, I replaced the bulky wheels of the oroginal toy with them because the steering motor was unable to turn them effectively.
+
+The steering angle is calculated by estimating the relative yaw movements between the BNO055 and GY-85. For GY-85, a simple compound filter is used to usimated the absolute angles.
+
 

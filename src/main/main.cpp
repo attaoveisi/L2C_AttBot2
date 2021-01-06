@@ -12,6 +12,7 @@
 #include <sensor_msgs/Imu.h>
 #include <tf/tf.h>
 #include <std_msgs/String.h>
+#include <GY_85.h>
 
 //#define _ODOM_PROXY
 
@@ -116,16 +117,22 @@ void updateEncoder_RA()
   encoderValue_R += 1.0;
   digitalWrite(LED_odom, HIGH);
 }
-double radii = 65.0/2.0;
+
+double radii = 137.2/2.0;
+double lr = 14.4/200.0;
+double lf = 14.2/200.0;
+double beta;
+double fwa;
 unsigned long interval = 40;
 double interval_d = 40.0;
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-double factor_rpm_mps = ((2.0*3.14)*((radii)/1000.0))/60.0;
+double factor_rpm_mps = ((2.0*PI)*((radii)/1000.0))/60.0;
 double rpm_F = 0.0;
 double rpm_R = 0.0;
 double vx_F = 0.0;
 double vx_R = 0.0;
+double vx_m = 0.0;
 double vx = 0.0;
 double vy = 0.0;
 double vth = 0.0;
@@ -137,6 +144,7 @@ double x_driven = 0.0;
 double y_driven = 0.0;
 double th_driven = 0.0;
 double lengthBetweenTwoWheels = 130.0/1000.0; //130 mm
+double degreeToRad = PI / 180;
 
 int16_t ax_raw, ay_raw, az_raw;
 int16_t gx_raw, gy_raw, gz_raw;
@@ -164,6 +172,95 @@ uint8_t displayCalStatus(void)
   return bno_system;
 }
 
+GY_85 GY85;     //create the object
+
+double zeroValue[5] = { 0, 0, 0, 0, 0}; // Found by experimenting
+
+/* All the angles start at 0.0 degrees */
+double gyroXangle = 0.0;
+double gyroYangle = 0.0;
+double gyroZangle = 0.0;
+
+double accXangle = 0.0;
+double accYangle = 0.0;
+double accZangle = 0.0;
+
+double compAngleX_deg = 0.0;
+double compAngleY_deg = 0.0;
+double compAngleZ_deg = 0.0;
+
+double compAngleX_rad = 0.0;
+double compAngleY_rad = 0.0;
+double compAngleZ_rad = 0.0;
+
+unsigned long timer;
+
+uint8_t buffer[2]; // I2C buffer
+
+double ax_fw;
+double ay_fw; 
+double az_fw;
+double ax_fw_old;
+double ay_fw_old; 
+double az_fw_old;
+
+int cx_fw;
+int cy_fw;
+int cz_fw;
+
+float gx_fw;
+float gy_fw;
+float gz_fw;
+float gt_fw;
+
+double getAngle(const int x_val, const int y_val) {
+  double accXval = (double)x_val;
+  double accYval = (double)y_val;
+  double angle = (atan2(accXval, accYval) + PI) * RAD_TO_DEG;
+  return angle;
+}
+
+double fwa_calibration_cycle;
+double fwa_calibration_start = 5000.0;
+double fwa_calibration_end = 10000.0;
+double fwa_calibration_seq = 1.0;
+double axy_calibration_seq = 1.0;
+double quat_SI_z_mean = 0.0;
+double compAngleZ_rad_mean = 0.0;
+double ax_fw_mean = 0.0;
+double ay_fw_mean = 0.0;
+
+double thresh(double val, double threshold){
+  if (val < threshold){
+    val = 0.0;
+  }
+  return val;
+}
+
+// for avoiding numerical issues
+double reverse_thresh(double new_val, double old_val, double threshold){
+  if (abs(new_val-old_val) > threshold){
+    return old_val;
+  }else
+  {
+    return new_val;
+  }
+}
+
+#define WINDOW_SIZE 10
+int maf_INDEX_x = 0; //moving average filter
+double maf_SUM_x = 0.0;
+double maf_READINGS_x[WINDOW_SIZE];
+double maf_AVERAGED_x = 0.0;
+int maf_INDEX_y = 0; //moving average filter
+double maf_SUM_y = 0.0;
+double maf_READINGS_y[WINDOW_SIZE];
+double maf_AVERAGED_y = 0.0;
+int maf_INDEX_z = 0; //moving average filter
+double maf_SUM_z = 0.0;
+double maf_READINGS_z[WINDOW_SIZE];
+double maf_AVERAGED_z = 0.0;
+
 // ================================================================
 // ===                      INITIAL SETUP                       ===
 // ================================================================
@@ -175,6 +272,7 @@ void setup() {
   pinMode(LED_odom, OUTPUT); // Declare the LED as an output
   pinMode(LED_IMU, OUTPUT); // Declare the LED as an output
 
+  digitalWrite(LED_IMU, HIGH);
   while(!bno.begin())
   {
     /* There was a problem detecting the BNO055 ... check your connections */
@@ -185,6 +283,11 @@ void setup() {
   }
   delay(1000);
   bno.setExtCrystalUse(true);
+
+  Wire.begin();
+  delay(10);
+  GY85.init();
+  delay(10);
 
   pinMode(HALLSEN_FA, INPUT_PULLUP); // Set hall sensor A as input pullup
   pinMode(HALLSEN_RA, INPUT_PULLUP); // Set hall sensor A as input pullup
@@ -247,6 +350,10 @@ void setup() {
   //advertise IMU filtered data
   nh.advertise(imu_data);
   while(!nh.connected()) {nh.spinOnce();}
+  timer = micros();
+  //Serial.println("Setup is finished!");
+
+  fwa_calibration_cycle = millis();
 }
 
 // ================================================================
@@ -274,7 +381,6 @@ void loop() {
   quat_SI[2] = quat_imu.y();
   quat_SI[3] = quat_imu.z();
   //Serial.println(quat_imu.z());
-  delay(BNO055_SAMPLERATE_DELAY_MS);
 
   //publish imu filtered data
   imumsg_filtered.header.stamp = nh.now();
@@ -291,16 +397,130 @@ void loop() {
   imumsg_filtered.angular_velocity.y = gyroReal_SI[1];
   imumsg_filtered.angular_velocity.z = gyroReal_SI[2];
   imumsg_filtered.angular_velocity_covariance[0] = -1;
-  uint8_t bno_system_out = displayCalStatus();
-  if (bno_system_out>0){
-    delay(2);
-    digitalWrite(LED_IMU, HIGH);
-  }else{
-    stateChange(state_IMU, LED_IMU);
-    while(!bno.begin());
-  }
   imu_data.publish(&imumsg_filtered);
+
+  // Raw data from GY-85:
+  // ITG3205 (3-Achsen-Drehratensensor)
+  // ADXL345 (3-Achsen-Beschleunigungssensor)
+  // HMC5883L (3-Achsen Digitalkompass)
+  ax_fw = (double)(GY85.accelerometer_x( GY85.readFromAccelerometer() ));
+  ay_fw = (double)(GY85.accelerometer_y( GY85.readFromAccelerometer() ));
+  az_fw = (double)(GY85.accelerometer_z( GY85.readFromAccelerometer() ));
+
+  ax_fw = reverse_thresh(ax_fw, ax_fw_old, 5000.0);
+  ax_fw_old = ax_fw;
+  ay_fw = reverse_thresh(ay_fw, ay_fw_old, 5000.0);
+  ay_fw_old = ay_fw;
+  az_fw = reverse_thresh(az_fw, az_fw_old, 5000.0);
+  az_fw_old = az_fw;
   
+  maf_SUM_x = maf_SUM_x - maf_READINGS_x[maf_INDEX_x];
+  maf_READINGS_x[maf_INDEX_x] = ax_fw;
+  maf_SUM_x = maf_SUM_x + ax_fw;
+  maf_INDEX_x += 1;
+  ax_fw = maf_SUM_x/WINDOW_SIZE; 
+
+  maf_SUM_y = maf_SUM_y - maf_READINGS_y[maf_INDEX_y];
+  maf_READINGS_y[maf_INDEX_y] = ay_fw;
+  maf_SUM_y = maf_SUM_y + ay_fw;
+  maf_INDEX_y += 1;
+  ay_fw = maf_SUM_y/WINDOW_SIZE; 
+
+  maf_SUM_z = maf_SUM_z - maf_READINGS_z[maf_INDEX_z];
+  maf_READINGS_z[maf_INDEX_z] = az_fw;
+  maf_SUM_z = maf_SUM_z + az_fw;
+  maf_INDEX_z += 1;
+  az_fw = maf_SUM_z/WINDOW_SIZE; 
+  
+  if(maf_INDEX_x == WINDOW_SIZE){
+    maf_INDEX_x = 0;
+    maf_INDEX_y = 0;
+    maf_INDEX_z = 0;
+  }
+    
+  cx_fw = GY85.compass_x( GY85.readFromCompass() );
+  cy_fw = GY85.compass_y( GY85.readFromCompass() );
+  cz_fw = GY85.compass_z( GY85.readFromCompass() );
+  
+  gx_fw = GY85.gyro_x( GY85.readGyro() )/14.375; // 14.375 is the sensitivity (see datasheet)
+  gx_fw = thresh(gx_fw, 0.02);
+  gy_fw = GY85.gyro_y( GY85.readGyro() )/14.375;
+  gy_fw = thresh(gy_fw, 0.02);
+  gz_fw = GY85.gyro_z( GY85.readGyro() )/14.375;
+  gz_fw = thresh(gz_fw, 0.02);
+  gt_fw = GY85.temp  ( GY85.readGyro() )/14.375;
+
+  gyroXangle += gx_fw * ((double)(micros() - timer) / 1000000); // Without any filter
+  gyroYangle += gy_fw * ((double)(micros() - timer) / 1000000); // Without any filter
+  gyroZangle += gz_fw * ((double)(micros() - timer) / 1000000); // Without any filter
+
+  // taking the mean value in the first couple of seconds out
+  if ((millis()-fwa_calibration_cycle > fwa_calibration_start) && (millis()-fwa_calibration_cycle < fwa_calibration_end)){
+    ax_fw_mean += ax_fw;
+    ay_fw_mean += ay_fw;
+    axy_calibration_seq += 1.0;
+  }else{
+    ax_fw_mean = ax_fw_mean/axy_calibration_seq;
+    ay_fw_mean = ay_fw_mean/axy_calibration_seq;
+    ax_fw = ax_fw - ax_fw_mean;
+    ay_fw = ay_fw - ay_fw_mean;
+    axy_calibration_seq = 1.0;
+  }
+
+  accXangle = getAngle(ax_fw, az_fw);
+  accYangle = getAngle(ay_fw, az_fw);
+  accZangle = getAngle(ax_fw, ay_fw);
+
+  compAngleX_deg = (0.94 * (compAngleX_deg + (gx_fw * (double)(micros() - timer) / 1000000))) + (0.06 * accXangle);
+  compAngleY_deg = (0.94 * (compAngleY_deg + (gy_fw * (double)(micros() - timer) / 1000000))) + (0.06 * accYangle);
+  compAngleZ_deg = (0.94 * (compAngleZ_deg + (gz_fw * (double)(micros() - timer) / 1000000))) + (0.06 * accZangle);
+  compAngleX_rad = degreeToRad*compAngleX_deg;
+  compAngleY_rad = degreeToRad*compAngleY_deg;
+  compAngleZ_rad = degreeToRad*compAngleZ_deg;
+  while (compAngleX_rad > PI) {
+      compAngleX_rad -= 2.0 * PI;
+  }
+  while (compAngleX_rad < -PI) {
+      compAngleX_rad += 2.0 * PI;
+  }
+  while (compAngleY_rad > PI) {
+      compAngleY_rad -= 2.0 * PI;
+  }
+  while (compAngleY_rad < -PI) {
+      compAngleY_rad += 2.0 * PI;
+  }
+  while (compAngleZ_rad > PI) {
+      compAngleZ_rad -= 2.0 * PI;
+  }
+  while (compAngleZ_rad < -PI) {
+      compAngleZ_rad += 2.0 * PI;
+  }
+  
+  // taking the mean value in the first couple of seconds out
+  if ((millis()-fwa_calibration_cycle > fwa_calibration_start) && (millis()-fwa_calibration_cycle < fwa_calibration_end)){
+    quat_SI_z_mean += quat_imu.z();
+    compAngleZ_rad_mean += compAngleZ_rad;
+    fwa_calibration_seq += 1.0;
+    fwa = (quat_imu.z() - compAngleZ_rad);
+  }else{
+    quat_SI_z_mean = quat_SI_z_mean/fwa_calibration_seq;
+    compAngleZ_rad_mean = compAngleZ_rad_mean/fwa_calibration_seq;
+    fwa_calibration_seq = 1.0;
+    fwa = (quat_imu.z() - compAngleZ_rad)- abs(quat_SI_z_mean-compAngleZ_rad_mean);
+  }
+  
+  while (fwa > PI) {
+      fwa -= 2.0 * PI;
+  }
+  while (fwa < -PI) {
+      fwa += 2.0 * PI;
+  }
+  // Serial.print(compAngleZ_rad); Serial.print("\t");
+  // Serial.print(quat_imu.z()); Serial.print("\t");
+  // Serial.print(fwa); Serial.print("\n");
+
+  timer = micros();
+
   // Update RPM value on every second
   currentMillis = millis();
   if (currentMillis - previousMillis > interval) {
@@ -308,9 +528,11 @@ void loop() {
     rpm_R = (double)(encoderValue_R/(interval_d/1000.0) * 60.0 / ENCODEROUTPUT);
     vx_F = abs(rpm_F*factor_rpm_mps); // rpm_FR*2*PI/60*65/2.0/1000
     vx_R = abs(rpm_R*factor_rpm_mps);
-    vx = (vx_F + vx_R)/2.0;
-    vy = 0.0;
-    vth = 0.0;
+    vx_m = (vx_F + vx_R)/2.0;
+    beta = atan((lf)/(lf+lr)*tan(fwa));
+    vth = vx_m/(lf+lr)*cos(beta)*tan(fwa);
+    vx = vx_m*cos(th_driven+beta);
+    vy = vx_m*sin(th_driven+beta);
     dt = millis() - currentMillis;
     delta_x = (vx * cos(th_driven)) * dt/1000.0;
     delta_y = (vx * sin(th_driven)) * dt/1000.0;
@@ -374,5 +596,14 @@ void loop() {
   #endif
 
   nh.spinOnce();
-  delay(20);
+  
+  delay(BNO055_SAMPLERATE_DELAY_MS);
+  
+  // Check the calibration status
+  uint8_t bno_system_out = displayCalStatus();
+  if (bno_system_out > 2){ // 0..3 with 3 meaning fully calibrated 
+    digitalWrite(LED_IMU, HIGH);
+  }else{
+    stateChange(state_IMU, LED_IMU);
+  }
 }

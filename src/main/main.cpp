@@ -86,9 +86,7 @@ sensor_msgs::Imu imumsg_filtered;
 geometry_msgs::Quaternion orientation;
 geometry_msgs::Vector3 angular_velocity;
 geometry_msgs::Vector3 linear_acceleration;
-double orientation_covariance[9];
-double angular_velocity_covariance[9];
-double linear_acceleration_covariance[9];
+
 ros::Publisher imu_data("imu_data", &imumsg_filtered);
 
 double ENCODEROUTPUT = 20.0; // Please insert your motor encoder output pulse per rotation
@@ -331,20 +329,20 @@ void setup() {
     trans_msg.child_frame_id = "base_link";
 
     memset(odom_msg.pose.covariance, 0, sizeof(odom_msg.pose.covariance));
-    odom_msg.pose.covariance[0] = 0.001;
-    odom_msg.pose.covariance[7] = 0.001;
-    odom_msg.pose.covariance[14] = 1000000;
-    odom_msg.pose.covariance[21] = 1000000;
-    odom_msg.pose.covariance[28] = 1000000;
-    odom_msg.pose.covariance[35] = 1000;
+    odom_msg.pose.covariance[0] = 0.03;
+    odom_msg.pose.covariance[7] = 0.03;
+    odom_msg.pose.covariance[14] = 0.0;
+    odom_msg.pose.covariance[21] = 0.0;
+    odom_msg.pose.covariance[28] = 0.0;
+    odom_msg.pose.covariance[35] = 0.002;
 
     memset(odom_msg.twist.covariance, 0, sizeof(odom_msg.twist.covariance));
-    odom_msg.twist.covariance[0] = 0.001;
-    odom_msg.twist.covariance[7] = 0.001;
-    odom_msg.twist.covariance[14] = 1000000;
-    odom_msg.twist.covariance[21] = 1000000;
-    odom_msg.twist.covariance[28] = 1000000;
-    odom_msg.twist.covariance[35] = 1000;
+    odom_msg.twist.covariance[0] = 0.01;
+    odom_msg.twist.covariance[7] = 0.01;
+    odom_msg.twist.covariance[14] = 0.0;
+    odom_msg.twist.covariance[21] = 0.0;
+    odom_msg.twist.covariance[28] = 0.0;
+    odom_msg.twist.covariance[35] = 0.003;
   #endif
 
   //advertise IMU filtered data
@@ -392,11 +390,23 @@ void loop() {
   imumsg_filtered.linear_acceleration.x = aaReal_SI[0];
   imumsg_filtered.linear_acceleration.y = aaReal_SI[1];
   imumsg_filtered.linear_acceleration.z = aaReal_SI[2];
-  imumsg_filtered.linear_acceleration_covariance[0] = -1;
   imumsg_filtered.angular_velocity.x = gyroReal_SI[0];
   imumsg_filtered.angular_velocity.y = gyroReal_SI[1];
   imumsg_filtered.angular_velocity.z = gyroReal_SI[2];
-  imumsg_filtered.angular_velocity_covariance[0] = -1;
+
+  // Covariances. The Bosch BNO055 datasheet is pretty useless regarding the sensor's accuracy.
+  // - The accuracy of the magnetometer is +-2.5deg. Users on online forums agree on that number.
+  // - The accuracy of the gyroscope is unknown. I use the +-3deg/s zero rate offset. To be tested.
+  // - The accuracy of the accelerometer is unknown. Based on the typical and maximum zero-g offset (+-80mg and
+  //   +-150mg) and the fact that my graphs look better than that, I use 80mg. To be tested.
+  // Cross-axis errors are not (yet) taken into account. To be tested.
+  for(unsigned row = 0; row < 3; ++ row) {
+    for(unsigned col = 0; col < 3; ++ col) {
+      imumsg_filtered.orientation_covariance[row * 3 + col] = (row == col? 0.02: 0.);  // +-2.5deg
+      imumsg_filtered.angular_velocity_covariance[row * 3 + col] = (row == col? 0.1: 0.);  // +-3deg/s
+      imumsg_filtered.linear_acceleration_covariance[row * 3 + col] = (row == col? 0.15: 0.);  // +-80mg
+    }
+  }
   imu_data.publish(&imumsg_filtered);
 
   // Raw data from GY-85:
@@ -501,7 +511,7 @@ void loop() {
     quat_SI_z_mean += quat_imu.z();
     compAngleZ_rad_mean += compAngleZ_rad;
     fwa_calibration_seq += 1.0;
-    fwa = (quat_imu.z() - compAngleZ_rad);
+    fwa = 0.0;
   }else{
     quat_SI_z_mean = quat_SI_z_mean/fwa_calibration_seq;
     compAngleZ_rad_mean = compAngleZ_rad_mean/fwa_calibration_seq;
@@ -553,7 +563,7 @@ void loop() {
   }
   
   //New version:
-  geometry_msgs::Quaternion quat_ros = tf::createQuaternionFromYaw(th_driven);
+  geometry_msgs::Quaternion quat_ros = tf::createQuaternionFromYaw(quat_SI[3]);
   #ifdef _ODOM_PROXY
     odom_msg.header.seq++;
     odom_msg.header.stamp = nh.now();
@@ -591,7 +601,7 @@ void loop() {
     odom_msg.twist.twist.linear.z = 0.0;
     odom_msg.twist.twist.angular.x = 0.0;
     odom_msg.twist.twist.angular.y = 0.0;
-    odom_msg.twist.twist.angular.z = vth;
+    odom_msg.twist.twist.angular.z = gyroReal_SI[2];
     odom_pub.publish( &odom_msg );
   #endif
 
